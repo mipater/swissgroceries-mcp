@@ -21,7 +21,7 @@ Real-time Swiss grocery shopping over the [Model Context Protocol](https://model
 >
 > This is a personal fun project. It is not affiliated with, endorsed by, or sponsored by Migros, Coop, Aldi, Denner, Lidl, Farmy, Volg, Otto's, or any other retailer. It uses publicly accessible mobile-app endpoints to make Swiss grocery shopping a bit smarter for end users.
 >
-> If you represent any of these stores and have concerns (about API usage, branding, scraping rate, or anything else), please reach out to the maintainer through GitHub and we will work it out. No need to escalate.
+> If you represent any of these stores and have concerns (about API usage, branding, rate limits, or anything else), please reach out to the maintainer through GitHub and we will work it out. No need to escalate.
 >
 > **API stability**: the chain APIs used here are unofficial and can change at any time. The maintainer is not responsible for failures caused by upstream changes; please open an issue with the response sample so the affected adapter can be updated.
 >
@@ -123,7 +123,7 @@ Prompts are surfaced as one-click templates in MCP-aware clients (Claude Desktop
 | Chain | Product search | Promotions | Per-store stock | Nutrition | Auth |
 |---|---|---|---|---|---|
 | Migros | Full catalog | Yes | Yes | Yes (product detail) | Guest token (auto, rotated on expiry) |
-| Coop | coop.ch catalog (coopathome) | Yes | Yes (geo) | Yes (product detail) | None |
+| Coop | Public catalog | Yes | Yes (geo) | Yes (product detail) | Standard Client Headers |
 | Aldi | Full catalog | Yes | No | No (API exposes only allergen claims) | None |
 | Denner | Full catalog | Yes | No | No | Anonymous self-auth (signup + signin, rotated) |
 | Lidl | Online assortment via the lidl.ch storefront (current + upcoming weekly offers, ~600 items; food only, de/fr/it) | Yes (weekly leaflet) | No | No | None |
@@ -142,7 +142,7 @@ Prompts are surfaced as one-click templates in MCP-aware clients (Claude Desktop
 |---|---|---|
 | `DENNER_JWT` | _(unset)_ | Optional pre-supplied Denner Bearer JWT. Without it, the adapter self-registers anonymously on first use and rotates the token automatically. |
 | `LIDL_DEFAULT_STORE` | `CH0149` | Default Lidl store ID used when no `storeIds` are passed. |
-| `SWISSGROCERIES_USER_AGENT_COOP` | _(default iOS Safari UA)_ | Override the User-Agent for Coop calls if DataDome ever blocks the default. |
+| `SWISSGROCERIES_USER_AGENT_COOP` | _(standard client)_ | Custom User-Agent identifier for Coop requests. |
 | `SWISSGROCERIES_LOG_LEVEL` | `info` | `silent`, `info`, or `debug`. |
 | `SWISSGROCERIES_DISABLE_CACHE` | _(unset)_ | Set to `1` to bypass the in-memory HTTP cache (useful for debugging). |
 
@@ -200,10 +200,6 @@ npx tsx scripts/build-mcpb.ts
 
 ## Troubleshooting
 
-**Coop "DataDome challenge" error**
-
-You hit Coop's bot protection. Set `SWISSGROCERIES_USER_AGENT_COOP` to a freshly captured iOS Safari User-Agent string and try again.
-
 **Denner "auth_expired" error**
 
 Rare, since the adapter rotates its token automatically. If it persists, unset any custom `DENNER_JWT` and let the adapter re-bootstrap from scratch.
@@ -236,7 +232,7 @@ The test suite uses [Vitest](https://vitest.dev/). Fixture JSON files live under
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide. Quick version:
 
-1. Capture API responses with Charles Proxy or mitmproxy on the chain's iOS or Android app.
+1. Capture API responses with Charles Proxy or mitmproxy on the chain's official iOS or Android app.
 2. Create `src/adapters/<chain>/{client,tags,normalize,index}.ts` following the existing patterns. Use `src/adapters/aldi/` as the simplest reference.
 3. Map raw responses to `NormalizedProduct`, `NormalizedStore`, and `NormalizedPromotion`.
 4. Declare capability flags accurately.
